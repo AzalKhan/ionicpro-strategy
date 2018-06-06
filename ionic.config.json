@@ -1,0 +1,8 @@
+{
+  "name": "ionicpro-strategy",
+  "app_id": "25231f82",
+  "type": "ionic-angular",
+  "integrations": {
+    "cordova": {}
+  }
+}
