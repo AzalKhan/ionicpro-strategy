@@ -6,11 +6,25 @@ node() {
     env.PATH="$PATH:$ANDROID_HOME/tools"
     env.PATH="$PATH:$ANDROID_HOME/platform-tools"
     
+
+	try {
         stage ('clone') {
-            git([url: "${REPOURL}", branch: 'dev'])
+        sh "truncate -s 0 stage"
+        sh 'echo Clone > stage'
+        stage1= readFile 'stage'
+        env.stage2 = stage1
+        echo "stage name : ${stage2}"
+        
+        git([url: "${REPOURL}", branch: 'dev'])
         }
 		    
         stage ('tamplate') { 
+		sh "truncate -s 0 stage"
+        	sh 'echo tamplate > stage'
+        	stage1= readFile 'stage'
+        	env.stage2 = stage1
+        	echo "stage name : ${stage2}"
+		
 		sh 'git log --format="%ae" | head -1 > author'
 		author1= readFile 'author'
 		env.AUTHOR= author1.replaceAll("\\s","")
@@ -39,49 +53,105 @@ node() {
 		env.modplug=plgnName1.replaceAll("\\s", "")
 		
 		}
-		try {
+		
 		stage('condition') {
         if (env.plugin == '0') {
             stage('RUNNIG IF CONDITION') {
-			sh 'echo "updating binary only"'
+					sh "truncate -s 0 stage"
+					sh 'echo RUNNIG IF CONDITION > stage'
+					stage1= readFile 'stage'
+					env.stage2 = stage1
+					echo "stage name : ${stage2}"
+		
+					sh 'echo "updating binary only"'
 			}  
 			stage('pushing to master channel') {
+					sh "truncate -s 0 stage"
+					sh 'echo pushing to master channel > stage'
+					stage1= readFile 'stage'
+					env.stage2 = stage1
+					echo "stage name : ${stage2}"
+			
 			sh 'git push ionic master' 
 			}
 			
 			stage ('pushing to master branch on git'){
+					sh "truncate -s 0 stage"
+					sh 'echo pushing to master branch on git > stage'
+					stage1= readFile 'stage'
+					env.stage2 = stage1
+					echo "stage name : ${stage2}"
+			
 			sh 'git push https://AzalKhan:Capco123@github.com/AzalKhan/ionicpro-strategy.git'
 			}
             stage('remove platform') {
-			sh "ionic cordova platform rm android"
+			sh "truncate -s 0 stage"
+					sh 'echo remove platform > stage'
+					stage1= readFile 'stage'
+					env.stage2 = stage1
+					echo "stage name : ${stage2}"
+			
+			sh "ionic cordova platform rm android "
 								    }
 		 }
         
         else {
 	        stage('RUNNIG ELSE PART') {
+					sh "truncate -s 0 stage"
+					sh 'echo RUNNIG ELSE PART > stage'
+					stage1= readFile 'stage'
+					env.stage2 = stage1
+					echo "stage name : ${stage2}"
+			
 			sh 'echo "Updating binary as well as building bundled"'
 									} 
 			stage('pushing to master channel') {
+			  		sh "truncate -s 0 stage"
+					sh 'echo pushing to master channel > stage'
+					stage1= readFile 'stage'
+					env.stage2 = stage1
+					echo "stage name : ${stage2}"
+					
 			sh 'git push ionic master' 
 			}
 			stage('build') {
+		            	sh "truncate -s 0 stage"
+				sh 'echo build > stage'
+				stage1= readFile 'stage'
+				env.stage2 = stage1
+				echo "stage name : ${stage2}" 
+			    
 			sh 'npm install'    
 			sh 'ionic cordova build android --release'
-			
+									}
+
 			stage('signing Apk') {
+				sh "truncate -s 0 stage"
+				sh 'echo signing Apk > stage'
+				stage1= readFile 'stage'
+				env.stage2 = stage1
+				echo "stage name : ${stage2}" 
+
 			sh '/usr/lib/jvm/java-8-oracle/bin/jarsigner -verbose -keystore /home/azal/.jenkins/workspace/IonicPro-strategy/ionic-key.jks -storepass 123456 /home/azal/.jenkins/workspace/IonicPro-strategy/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk ionickey'
 			}
-			stage('signing Apk') {
+
+			stage('Alining Apk') {
+				sh "truncate -s 0 stage"
+				sh 'echo Alining Apk > stage'
+				stage1= readFile 'stage'
+				env.stage2 = stage1
+				echo "stage name : ${stage2}" 
+
 			sh '''/home/azal/Android/Sdk/build-tools/28.0.0/zipalign -v 4 "/home/azal/.jenkins/workspace/IonicPro-strategy/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk" "/home/azal/.jenkins/workspace/IonicPro-strategy/target/IonicProDemo.apk"'''
-			}
-			
-			} 
+
 			}
 		}
+		
 		currentBuild.result = "SUCCESS"
                 stage ('Notification'){
 		    slackSend baseUrl: 'https://capco-crew.slack.com/services/hooks/jenkins-ci/', channel: 'vm-jenkins', color: '#008000', message: "*Started Job-* ${env.JOB_NAME} [Job build number=${env.BUILD_NUMBER}]\n*Repo URL =* ${REPOURL}\n*Branch Name =* ${BRANCH}\n*Build Version=* ${buildtest}\n*Commit Message =* ${cmsg}\n*added plugin =* ${modplug}\n*Commit Author =* ${AUTHOR}\n", token: '0asuy7dBtPmTlSo5p8nMFM23'
 			}
+		}
 		}
         catch (e) {
                 currentBuild.result = "FAILURE"
@@ -89,6 +159,4 @@ node() {
 		    slackSend baseUrl: 'https://capco-crew.slack.com/services/hooks/jenkins-ci/', channel: 'vm-jenkins', color: '#FF0000', message: "*Started Job-* ${env.JOB_NAME} [Job build number=${env.BUILD_NUMBER}]\n*Repo URL =* ${REPOURL}\n*Branch Name =* ${BRANCH}\n*Build Version=* ${buildtest}\n*Commit Message =* ${cmsg}\n*added plugin =* ${modplug}\n*Commit Author =* ${AUTHOR}\n", token: '0asuy7dBtPmTlSo5p8nMFM23'
 			}
         }
-            
 }
-
