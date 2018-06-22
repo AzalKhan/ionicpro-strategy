@@ -1,0 +1,94 @@
+node() {
+    def ANDROID_HOME
+    env.BRANCH="origin/dev"
+    env.REPOURL="https://github.com/AzalKhan/ionicpro-strategy.git"
+    env.ANDROID_HOME= "/home/azal/Android/Sdk"
+    env.PATH="$PATH:$ANDROID_HOME/tools"
+    env.PATH="$PATH:$ANDROID_HOME/platform-tools"
+    
+        stage ('clone') {
+            git([url: "${REPOURL}", branch: 'dev'])
+        }
+		    
+        stage ('tamplate') { 
+		sh 'git log --format="%ae" | head -1 > author'
+		author1= readFile 'author'
+		env.AUTHOR= author1.replaceAll("\\s","")
+		sh 'echo Branch Name = ${Branch}'
+		echo "Repo URL = ${repourl}"
+		sh 'echo Commit Author = ${AUTHOR}'
+		sh "echo ${Branch} | cut -d '_' -f 2 > featureName"
+		feature= readFile 'featureName'
+		env.FEATURE= feature.replaceAll("\\s", "")
+		echo "FEATURE NAME = ${FEATURE}"
+		sh '''cat config.xml | grep "widget" | head -1 | cut -d '"' -f 4 > buildvversion '''
+		buildVersion2 = readFile 'buildvversion'
+		env.buildtest= buildVersion2.replaceAll("\\s", "")
+		sh 'echo BUILD VERSION = ${buildtest}'
+		sh 'git log -1 --pretty=%B > cmessage'
+		cm=readFile 'cmessage'
+		env.cmsg=cm.trim()
+		sh 'echo commit massage : ${cmsg}'
+		sh '''git show HEAD | grep -i "plugin name=" | wc -l > plugin1'''
+		sh 'cat plugin1'
+		plugin2 = readFile 'plugin1'
+		env.plugin= plugin2.replaceAll("\\s", "")
+		sh 'echo value: ${plugin}'
+		sh '''git show HEAD | grep -i "plugin name=" | grep "+" | awk -F '"' {'print $2 $3 $4'} >plgnName'''
+		plgnName1= readFile 'plgnName'
+		env.modplug=plgnName1.replaceAll("\\s", "")
+		
+		}
+		try {
+		stage('condition') {
+        if (env.plugin == '0') {
+            stage('RUNNIG IF CONDITION') {
+			sh 'echo "updating binary only"'
+			}  
+			stage('pushing to master channel') {
+			sh 'git push ionic master' 
+			}
+			
+			stage ('pushing to master branch on git'){
+			sh 'git push https://AzalKhan:Capco123@github.com/AzalKhan/ionicpro-strategy.git'
+			}
+            stage('remove platform') {
+			sh "ionic cordova platform rm android"
+								    }
+		 }
+        
+        else {
+	        stage('RUNNIG ELSE PART') {
+			sh 'echo "Updating binary as well as building bundled"'
+									} 
+			stage('pushing to master channel') {
+			sh 'git push ionic master' 
+			}
+			stage('build') {
+			sh 'npm install'    
+			sh 'ionic cordova build android --release'
+			
+			stage('signing Apk') {
+			sh '/usr/lib/jvm/java-8-oracle/bin/jarsigner -verbose -keystore /home/azal/.jenkins/workspace/IonicPro-strategy/ionic-key.jks -storepass 123456 /home/azal/.jenkins/workspace/IonicPro-strategy/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk ionickey'
+			}
+			stage('signing Apk') {
+			sh '''/home/azal/Android/Sdk/build-tools/28.0.0/zipalign -v 4 "/home/azal/.jenkins/workspace/IonicPro-strategy/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk" "/home/azal/.jenkins/workspace/IonicPro-strategy/target/IonicProDemo.apk"'''
+			}
+			
+			} 
+			}
+		}
+		currentBuild.result = "SUCCESS"
+                stage ('Notification'){
+		    slackSend baseUrl: 'https://capco-crew.slack.com/services/hooks/jenkins-ci/', channel: 'vm-jenkins', color: '#008000', message: "*Started Job-* ${env.JOB_NAME} [Job build number=${env.BUILD_NUMBER}]\n*Repo URL =* ${REPOURL}\n*Branch Name =* ${BRANCH}\n*Build Version=* ${buildtest}\n*Commit Message =* ${cmsg}\n*added plugin =* ${modplug}\n*Commit Author =* ${AUTHOR}\n", token: '0asuy7dBtPmTlSo5p8nMFM23'
+			}
+		}
+        catch (e) {
+                currentBuild.result = "FAILURE"
+                stage ('Notification'){
+		    slackSend baseUrl: 'https://capco-crew.slack.com/services/hooks/jenkins-ci/', channel: 'vm-jenkins', color: '#FF0000', message: "*Started Job-* ${env.JOB_NAME} [Job build number=${env.BUILD_NUMBER}]\n*Repo URL =* ${REPOURL}\n*Branch Name =* ${BRANCH}\n*Build Version=* ${buildtest}\n*Commit Message =* ${cmsg}\n*added plugin =* ${modplug}\n*Commit Author =* ${AUTHOR}\n", token: '0asuy7dBtPmTlSo5p8nMFM23'
+			}
+        }
+            
+}
+
