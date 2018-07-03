@@ -142,21 +142,21 @@ node() {
 				env.stage2 = stage1
 				echo "stage name : ${stage2}" 
 
-			sh '''/home/azal/Android/Sdk/build-tools/28.0.0/zipalign -v 4 "/home/azal/.jenkins/workspace/IonicPro-strategy/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk" "/home/azal/.jenkins/workspace/IonicPro-strategy/target/IonicProDemo.apk"'''
+			sh '''/home/azal/Android/Sdk/build-tools/28.0.0/zipalign -v 4 "/home/azal/.jenkins/workspace/IonicPro-strategy/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk" "/home/azal/.jenkins/workspace/IonicPro-strategy/target/IonicProDemo-${BUILD_NUMBER}.apk"'''
 
 			}
 		}
 		
 		currentBuild.result = "SUCCESS"
-                stage ('Notification'){
-		    slackSend baseUrl: 'https://capco-crew.slack.com/services/hooks/jenkins-ci/', channel: 'vm-jenkins', color: '#008000', message: "*Started Job-* ${env.JOB_NAME} [Job build number=${env.BUILD_NUMBER}]\n*Repo URL =* ${REPOURL}\n*Branch Name =* ${BRANCH}\n*Build Version=* ${buildtest}\n*Commit Message =* ${cmsg}\n*added plugin =* ${modplug}\n*Commit Author =* ${AUTHOR}\n", token: '0asuy7dBtPmTlSo5p8nMFM23'
+            stage ('Notification SU'){
+		    slackSend baseUrl: 'https://capco-crew.slack.com/services/hooks/jenkins-ci/', channel: 'vm-jenkins', color: '#008000', message: "*Started Job-* ${env.JOB_NAME} [Job build number=${env.BUILD_NUMBER}]\n*Repo URL =* ${REPOURL}\n*Branch Name =* ${BRANCH}\n*Build Version=* ${buildtest}\n*Commit Message =* ${cmsg}\n*Added Plugin =* ${modplug}\n*Commit Author =* ${AUTHOR}\n", token: '0asuy7dBtPmTlSo5p8nMFM23'
 			}
 		}
 		}
         catch (e) {
                 currentBuild.result = "FAILURE"
-                stage ('Notification'){
-		    slackSend baseUrl: 'https://capco-crew.slack.com/services/hooks/jenkins-ci/', channel: 'vm-jenkins', color: '#FF0000', message: "*Started Job-* ${env.JOB_NAME} [Job build number=${env.BUILD_NUMBER}]\n*Repo URL =* ${REPOURL}\n*Branch Name =* ${BRANCH}\n*Build Version=* ${buildtest}\n*Commit Message =* ${cmsg}\n*added plugin =* ${modplug}\n*Commit Author =* ${AUTHOR}\n", token: '0asuy7dBtPmTlSo5p8nMFM23'
+                stage ('Notification FA'){
+		    slackSend baseUrl: 'https://capco-crew.slack.com/services/hooks/jenkins-ci/', channel: 'vm-jenkins', color: '#FF0000', message: "Stage Failed = ${env.stage2}\n*Started Job-* ${env.JOB_NAME} [Job build number=${env.BUILD_NUMBER}]\n*Repo URL =* ${REPOURL}\n*Branch Name =* ${BRANCH}\n*Build Version=* ${buildtest}\n*Commit Message =* ${cmsg}\n*Added Plugin =* ${modplug}\n*Commit Author =* ${AUTHOR}\n", token: '0asuy7dBtPmTlSo5p8nMFM23'
 			}
-        }
-}
+				}
+		}
